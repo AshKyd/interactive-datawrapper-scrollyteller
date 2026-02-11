@@ -25,10 +25,18 @@
     // transparentFloat: true
   }}
 >
-  {#each preloadUrls as url (url)}
-    <DatawrapperIframe src={url} visible={url == data.datawrapperUrl} />
-  {/each}
+  <div class="app">
+    {#each preloadUrls as url (url)}
+      <DatawrapperIframe src={url} visible={url == data.datawrapperUrl} />
+    {/each}
+  </div>
 </Scrollyteller>
 
 <style lang="scss">
+  .app {
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
 </style>

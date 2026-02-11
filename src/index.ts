@@ -16,40 +16,47 @@ export type PanelDefinition<Data> = {
   [key: string]: any;
 };
 
-let appMountEl: Mount;
-let appProps;
 
+const usedNames = [];
 whenOdysseyLoaded.then(() => {
-  const scrollyData = loadScrollyteller<PanelData>(
-    "datawrapper", // If set to eg. "one" use #scrollytellerNAMEone in CoreMedia
-    "u-full", // Class to apply to mount point u-full makes it full width in Odyssey
-    "mark", // Name of marker in CoreMedia eg. for "point" use #point default: #mark
-  );
+  // Select all scrollyteller mounts
+  const scrollyMounts = selectMounts("scrollytellerNAMEdatawrapper", { markAsUsed: false });
 
-  // Strip out Datawrapper charts
-  let datawrapperUrl = '';
-  const modifiedPanels = scrollyData.panels.map(panel => {
-    const newNodes = panel.nodes.filter(node => {
-      const dwIframe = node.querySelector('iframe[src*=datawrapper]');
-      if (dwIframe) {
-        datawrapperUrl = dwIframe.getAttribute('src') || '';
-        return false;
-      }
-      return true;
-    })
-    return {
-      ...panel,
-      data: { ...panel.data, datawrapperUrl },
-      nodes: newNodes
-    }
-  })
-  mount(App, {
-    target: scrollyData.mountNode,
-    props: { panels: modifiedPanels,
-      mobileVariant: scrollyData.mountNode.id.includes('MOBILErows') ? 'rows' : 'blocks'
-     },
-  })
+  // Loop through em
+  scrollyMounts.forEach(mountEl => {
+    const scrollyName = getMountValue(mountEl, "scrollytellerNAME");
+    const scrollyData = loadScrollyteller<PanelData>(
+      scrollyName,
+      "u-full",
+      "mark"
+    );
 
+    // Pull Datawrapper charts out of the panels and put them in as props
+    let datawrapperUrl = "";
+    const modifiedPanels = scrollyData.panels.map(panel => {
+      const newNodes = panel.nodes.filter(node => {
+        const dwIframe = node.querySelector("iframe[src*=datawrapper]");
+        if (dwIframe) {
+          datawrapperUrl = dwIframe.getAttribute("src") || "";
+          return false;
+        }
+        return true;
+      });
+      return {
+        ...panel,
+        data: { ...panel.data, datawrapperUrl },
+        nodes: newNodes,
+      };
+    });
+
+    mount(App, {
+      target: scrollyData.mountNode,
+      props: {
+        panels: modifiedPanels,
+        mobileVariant: scrollyData.mountNode.id.includes("MOBILErows") ? "rows" : "blocks",
+      },
+    });
+  });
 });
 
 if (process.env.NODE_ENV === 'development') {

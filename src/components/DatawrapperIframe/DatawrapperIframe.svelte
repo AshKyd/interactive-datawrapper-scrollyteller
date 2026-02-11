@@ -21,7 +21,6 @@
 </script>
 
 <svelte:window onmessage={handleMessage} />
-
 <div class="iframe-wrapper">
   <iframe bind:this={iframeEl} {src} title="" class:visible style:height="{height}px" aria-hidden={!visible}></iframe>
 </div>
