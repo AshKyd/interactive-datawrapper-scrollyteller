@@ -21,45 +21,25 @@
 </script>
 
 <svelte:window onmessage={handleMessage} />
-<div class="iframe-wrapper">
-  <iframe
-    bind:this={iframeEl}
-    {src}
-    title=""
-    class:visible
-    style:height="{height}px"
-    aria-hidden={!visible}
-    loading="lazy"
-  ></iframe>
+<div class="iframe-wrapper" class:visible>
+  <iframe bind:this={iframeEl} {src} title="" style:height="{height}px" aria-hidden={!visible} loading="lazy"></iframe>
 </div>
 
 <style lang="scss">
   .iframe-wrapper {
-    width: 0;
-  }
-  iframe {
-    border: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background: white;
     transition: opacity 0.25s;
+    overflow: hidden auto;
+
     opacity: 0;
-    transform: translateX(-50%);
-    margin-top: 24px;
-    min-width: min(480px, calc(100vw - 48px));
-    @media (min-width: 744px) and (min-height: 700px) {
-      margin-top: 84px;
-      min-width: min(480px, calc(100vw - 99px));
-    }
-    @media (min-width: 993px) and (min-height: 700px) {
-      margin-top: 0;
-      min-width: 480px;
-
-      // centre visually in the middle of the free space
-      // Warning: charts taller than the screen will be broken, and no amount
-      // of scrolling will fix them, so don't make tall charts pls.
-      position: absolute;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-
     &.visible {
       opacity: 1;
       pointer-events: auto; // Changed from none to allow interaction if visible
@@ -67,6 +47,17 @@
 
     &:not(.visible) {
       pointer-events: none;
+    }
+  }
+  iframe {
+    border: none;
+    min-width: min(480px, calc(100vw - 48px));
+    @media (min-width: 744px) and (min-height: 700px) {
+      min-width: min(480px, calc(100vw - 99px));
+    }
+    @media (min-width: 993px) and (min-height: 700px) {
+      margin-top: 0;
+      min-width: 480px;
     }
   }
 </style>
