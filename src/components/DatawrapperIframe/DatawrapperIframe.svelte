@@ -44,11 +44,11 @@
     transform: translateX(-50%);
     margin-top: 24px;
     min-width: min(480px, calc(100vw - 48px));
-    @media (min-width: 744px) {
+    @media (min-width: 744px) and (min-height: 700px) {
       margin-top: 84px;
       min-width: min(480px, calc(100vw - 99px));
     }
-    @media (min-width: 993px) {
+    @media (min-width: 993px) and (min-height: 700px) {
       margin-top: 0;
       min-width: 480px;
     }

@@ -7,11 +7,14 @@
   let { panels, mobileVariant = 'rows' }: { panels: PanelDefinition<PanelData>[]; mobileVariant: 'blocks' | 'rows' } =
     $props();
   let data = $state(untrack(() => panels[0]?.data as PanelData));
+  let innerHeight = $state(window.innerHeight);
 
   const preloadUrls = $derived([
     ...new Set(panels.map(p => p.data.datawrapperUrl as string).filter(Boolean))
   ] as string[]);
 </script>
+
+<svelte:window bind:innerHeight />
 
 <Scrollyteller
   {panels}
@@ -20,7 +23,7 @@
   }}
   layout={{
     align: 'left',
-    mobileVariant: mobileVariant
+    mobileVariant: innerHeight < 667 ? 'blocks' : mobileVariant
     // resizeInteractive: true
     // transparentFloat: true
   }}
@@ -35,7 +38,8 @@
 <style lang="scss">
   .app {
     width: 100%;
-    overflow: hidden;
+    height: 100%;
+    overflow: hidden auto;
     display: flex;
     justify-content: center;
   }
