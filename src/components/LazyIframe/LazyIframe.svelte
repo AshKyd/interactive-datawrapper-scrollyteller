@@ -13,6 +13,7 @@
   import { queueManager } from './utils';
   import { untrack } from 'svelte';
   import { logger } from '../../utils/logger';
+  import Loader from '../Loader/Loader.svelte';
 
   let { src, current = true, title = '', className = '' }: Props = $props();
 
@@ -22,6 +23,7 @@
   let hasEnteredViewport = $state(false);
   let canLoad = $state(false);
   let isPending = $state(false);
+  let isLoaded = $state(false);
 
   /**
    * We use an effect to handle the viewport detection.
@@ -32,6 +34,7 @@
     // Reset state when src changes
     canLoad = false;
     hasEnteredViewport = false;
+    isLoaded = false;
 
     const observer = new IntersectionObserver(
       entries => {
@@ -67,6 +70,7 @@
             }
             canLoad = false;
             isPending = false;
+            isLoaded = false;
           }
         }
         hasEnteredViewport = isIntersecting;
@@ -107,6 +111,7 @@
   });
 
   const handleLoad = () => {
+    isLoaded = true;
     queueManager.notifyDone(src);
   };
 
@@ -128,9 +133,15 @@
 <svelte:window onmessage={handleMessage} />
 
 <div bind:this={container} class="lazy-iframe-container {className}" style:height="{height}px">
+  {#if hasEnteredViewport && (isPending || !isLoaded)}
+    <div class="loader-wrapper">
+      <Loader aria-live="off" role="" hideLabel={false} />
+    </div>
+  {/if}
   {#if hasEnteredViewport && canLoad}
     <iframe
       bind:this={iframeEl}
+      class:visible={isLoaded}
       {src}
       {title}
       style:height="{height}px"
@@ -142,9 +153,27 @@
 </div>
 
 <style lang="scss">
+  .lazy-iframe-container {
+    position: relative;
+  }
+
+  .loader-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   iframe {
     width: 100%;
     border: none;
     display: block;
+    opacity: 0;
+    transition: opacity 0.25s;
+
+    &.visible {
+      opacity: 1;
+    }
   }
 </style>

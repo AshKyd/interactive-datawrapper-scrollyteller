@@ -3,6 +3,7 @@
   import type { PanelDefinition, PanelData } from '../../index';
   import { untrack } from 'svelte';
   import DatawrapperIframe from '../DatawrapperIframe/DatawrapperIframe.svelte';
+  import Loader from '../Loader/Loader.svelte';
 
   interface Props {
     panels: PanelDefinition<PanelData>[];
