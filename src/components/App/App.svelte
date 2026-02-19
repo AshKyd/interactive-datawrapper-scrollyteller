@@ -15,6 +15,7 @@
   const uniqueCharts = $derived([
     ...new Set(panels.map(p => `${p.data.datawrapperId}/${p.data.datawrapperVersion}`).filter(s => s !== '/'))
   ]);
+  const currentIndex = $derived(uniqueCharts.indexOf(`${data.datawrapperId}/${data.datawrapperVersion}`));
 </script>
 
 <svelte:window bind:innerHeight />
@@ -35,12 +36,13 @@
     {#each uniqueCharts as chartKey}
       {@const [chartId, chartVersion] = chartKey.split('/')}
       <div class="chart">
-        <DatawrapperIframe
-          src="https://datawrapper.dwcdn.net/{chartId}/{chartVersion}/"
-          current={chartId === data.datawrapperId && chartVersion === data.datawrapperVersion}
-          visible={uniqueCharts.indexOf(chartKey) <=
-            uniqueCharts.indexOf(`${data.datawrapperId}/${data.datawrapperVersion}`)}
-        />
+        {#key chartId}
+          <DatawrapperIframe
+            src="https://datawrapper.dwcdn.net/{chartId}/{chartVersion}/"
+            current={chartId === data.datawrapperId && chartVersion === data.datawrapperVersion}
+            visible={uniqueCharts.indexOf(chartKey) <= currentIndex}
+          />
+        {/key}
       </div>
     {/each}
   </div>

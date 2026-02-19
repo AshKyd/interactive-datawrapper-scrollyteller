@@ -34,6 +34,8 @@
 		"@abcnews/env-utils": "^6.0.0",
 		"@abcnews/mount-utils": "^3.0.0",
 		"@abcnews/svelte-scrollyteller": "^3.0.1",
+		"async": "^3.2.6",
+		"mocha": "^11.7.5",
 		"svelte": "^5.50.0"
 	}
 }

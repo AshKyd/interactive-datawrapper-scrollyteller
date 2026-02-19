@@ -10,12 +10,18 @@
     className?: string;
   }
 
+  import { queueManager } from './utils';
+  import { untrack } from 'svelte';
+  import { logger } from '../../utils/logger';
+
   let { src, current = true, title = '', className = '' }: Props = $props();
 
   let container: HTMLDivElement | undefined = $state();
   let iframeEl: HTMLIFrameElement | undefined = $state();
   let height = $state('400'); // Default height
   let hasEnteredViewport = $state(false);
+  let canLoad = $state(false);
+  let isPending = $state(false);
 
   /**
    * We use an effect to handle the viewport detection.
@@ -23,11 +29,45 @@
   $effect(() => {
     if (!container) return;
 
+    // Reset state when src changes
+    canLoad = false;
+    hasEnteredViewport = false;
+
     const observer = new IntersectionObserver(
       entries => {
         const isIntersecting = entries[0].isIntersecting;
         if (isIntersecting !== hasEnteredViewport) {
-          console.debug(`[LazyIframe] ${isIntersecting ? 'Loading' : 'Unloading'} frame: ${src}`);
+          if (isIntersecting) {
+            if (!canLoad && !isPending) {
+              isPending = true;
+              logger.debug(`[LazyIframe] Queuing frame: ${src}`);
+              queueManager
+                .requestLoad(
+                  src,
+                  untrack(() => current)
+                )
+                .then(() => {
+                  if (untrack(() => hasEnteredViewport)) {
+                    isPending = false;
+                    canLoad = true;
+                    logger.debug(`[LazyIframe] Loading frame: ${src}`);
+                  } else {
+                    logger.debug(`[LazyIframe] Scrolled out while waiting for queue: ${src}`);
+                    isPending = false;
+                    queueManager.notifyDone(src);
+                  }
+                });
+            }
+          } else {
+            logger.debug(`[LazyIframe] Unloading frame: ${src}`);
+            if (!canLoad) {
+              queueManager.cancelRequest(src);
+            } else {
+              queueManager.notifyDone(src);
+            }
+            canLoad = false;
+            isPending = false;
+          }
         }
         hasEnteredViewport = isIntersecting;
       },
@@ -40,8 +80,35 @@
 
     return () => {
       observer.disconnect();
+      if (!canLoad) {
+        queueManager.cancelRequest(src);
+      } else {
+        queueManager.notifyDone(src);
+      }
     };
   });
+
+  /**
+   * Boost priority if this frame becomes 'current' while waiting in queue.
+   */
+  $effect(() => {
+    if (hasEnteredViewport && !canLoad && !isPending && current) {
+      isPending = true;
+      queueManager.requestLoad(src, true).then(() => {
+        if (untrack(() => hasEnteredViewport)) {
+          isPending = false;
+          canLoad = true;
+        } else {
+          isPending = false;
+          queueManager.notifyDone(src);
+        }
+      });
+    }
+  });
+
+  const handleLoad = () => {
+    queueManager.notifyDone(src);
+  };
 
   /**
    * Handle messages from Datawrapper for auto-resizing.
@@ -61,8 +128,16 @@
 <svelte:window onmessage={handleMessage} />
 
 <div bind:this={container} class="lazy-iframe-container {className}" style:height="{height}px">
-  {#if hasEnteredViewport}
-    <iframe bind:this={iframeEl} {src} {title} style:height="{height}px" aria-hidden={!current}></iframe>
+  {#if hasEnteredViewport && canLoad}
+    <iframe
+      bind:this={iframeEl}
+      {src}
+      {title}
+      style:height="{height}px"
+      aria-hidden={!current}
+      onload={handleLoad}
+      onerror={handleLoad}
+    ></iframe>
   {/if}
 </div>
 

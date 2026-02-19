@@ -1,11 +1,11 @@
-import { whenOdysseyLoaded } from '@abcnews/env-utils';
+import { getTier, whenOdysseyLoaded } from '@abcnews/env-utils';
 import { getMountValue, selectMounts } from '@abcnews/mount-utils';
-import type { Mount } from '@abcnews/mount-utils';
 import { loadScrollyteller } from '@abcnews/svelte-scrollyteller';
 import App from './components/App/App.svelte';
 import { mount } from 'svelte';
 import DatawrapperIframe from './components/DatawrapperIframe/DatawrapperIframe.svelte';
 import LazyIframe from './components/LazyIframe/LazyIframe.svelte';
+import { logger } from './utils/logger';
 
 export type PanelData = {
   datawrapperId: string;
@@ -90,5 +90,5 @@ async function go() {
 go();
 
 if (process.env.NODE_ENV === 'development') {
-  console.debug(`[interactive-datawrapper-scrollyteller] public path: ${__webpack_public_path__}`);
+  logger.debug(`[interactive-datawrapper-scrollyteller] public path: ${__webpack_public_path__}`);
 }
