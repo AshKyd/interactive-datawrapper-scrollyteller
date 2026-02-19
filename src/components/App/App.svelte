@@ -12,10 +12,31 @@
   let { panels, mobileVariant = 'rows' }: Props = $props();
   let data = $state(untrack(() => panels[0]?.data as PanelData));
   let innerHeight = $state(window.innerHeight);
-  const uniqueCharts = $derived([
-    ...new Set(panels.map(p => `${p.data.datawrapperId}/${p.data.datawrapperVersion}`).filter(s => s !== '/'))
-  ]);
-  const currentIndex = $derived(uniqueCharts.indexOf(`${data.datawrapperId}/${data.datawrapperVersion}`));
+  const framesToRender = $derived.by(() => {
+    const keys = [
+      ...new Set(panels.map(p => `${p.data.datawrapperId}/${p.data.datawrapperVersion}`).filter(s => s !== '/'))
+    ];
+    const currentKey = `${data.datawrapperId}/${data.datawrapperVersion}`;
+    const activeIndex = keys.indexOf(currentKey);
+
+    return keys
+      .map((key, index) => {
+        const [chartId, chartVersion] = key.split('/');
+        return {
+          key,
+          chartId,
+          chartVersion,
+          index,
+          isCurrent: index === activeIndex,
+          isVisible: index <= activeIndex
+        };
+      })
+      .filter(frame => {
+        // Only render the current, two previous, and two next frames.
+        // This keeps the DOM small and ensures the load queue is manageable.
+        return Math.abs(frame.index - activeIndex) <= 1;
+      });
+  });
 </script>
 
 <svelte:window bind:innerHeight />
@@ -33,14 +54,13 @@
   }}
 >
   <div class="charts">
-    {#each uniqueCharts as chartKey}
-      {@const [chartId, chartVersion] = chartKey.split('/')}
+    {#each framesToRender as frame (frame.key)}
       <div class="chart">
-        {#key chartId}
+        {#key frame.chartId}
           <DatawrapperIframe
-            src="https://datawrapper.dwcdn.net/{chartId}/{chartVersion}/"
-            current={chartId === data.datawrapperId && chartVersion === data.datawrapperVersion}
-            visible={uniqueCharts.indexOf(chartKey) <= currentIndex}
+            src="https://datawrapper.dwcdn.net/{frame.chartId}/{frame.chartVersion}/"
+            current={frame.isCurrent}
+            visible={frame.isVisible}
           />
         {/key}
       </div>
