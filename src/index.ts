@@ -85,7 +85,7 @@ async function go() {
     }
     node.dataset.mount = undefined;
     node.style.padding = '16px';
-    const chartUrl = `https://datawrapper.dwcdn.net/${id}/${version}/`;
+    const chartUrl = `https://datawrapper.dwcdn.net/${id}/${version}/?dark=false`;
     mount(LazyIframe, {
       target: node,
       props: {

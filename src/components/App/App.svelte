@@ -59,7 +59,7 @@
       <div class="chart">
         {#key frame.chartId}
           <DatawrapperIframe
-            src="https://datawrapper.dwcdn.net/{frame.chartId}/{frame.chartVersion}/"
+            src="https://datawrapper.dwcdn.net/{frame.chartId}/{frame.chartVersion}/?dark=false"
             current={frame.isCurrent}
             visible={frame.isVisible}
           />
